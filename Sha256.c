@@ -6,6 +6,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * Length of output in bytes
@@ -136,12 +137,14 @@ void printHex(char c) {
 }
 
 int main(int argc, char **argv) {
+	if (argc < 1)
+		printf("State the input");
 
-	char input[] = "The quick brown fox jumps over the lazy dog";
+	//char input[50] = "The quick brown fox jumps over the lazy dog";
 	unsigned int * output = calloc(OUTPUT_SIZE , sizeof(int));
-	digest(input, 43, output);
+	digest(argv[1], strlen(argv[1]), output);
 
-	printf("correct? %s\n\n", (-676791373 == output[0] ? "True" : "False"));
+	//printf("correct? %s\n\n", (-676791373 == output[0] ? "True" : "False"));
 
 	int i;
 	for (i = 0; i < 8; i++) {
@@ -151,6 +154,11 @@ int main(int argc, char **argv) {
 		printHex((char)(output[i] & 0xFF));
 	}
 	printf("\n");
+
+	char * dat = "chokoladekage";
+	printf("%ld ",strlen(dat) );
+	dat = "kage";
+	printf("%ld", strlen(dat));
 
 	free(output);
 
