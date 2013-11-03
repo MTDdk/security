@@ -51,8 +51,8 @@ void digest(char* input, int inputLength, unsigned int* digest) {
 	int index;
 	for (index = 0; index < inputLength; index++)
 		padded[index] = input[index];
-	for (index = inputLength; index < paddingSize; index++)
-		padded[index] = 0;
+	/*for (index = inputLength; index < paddingSize; index++)
+		padded[index] = 0;*/
 
 	//the padding shall always start with a single '1' bit
 	padded[inputLength] = 0x80;
@@ -131,9 +131,22 @@ void digest(char* input, int inputLength, unsigned int* digest) {
 	digest[7] = H[7];
 }
 
-void printHex(char c) {
+
+
+void printHexChar(char c) {
 	printf("%c", HEX_CHAR_TABLE[(c >> 4) & 0x0F]);
 	printf("%c", HEX_CHAR_TABLE[c & 0x0F]);
+}
+
+void printHex(unsigned int * digest) {
+	int i;
+	for (i = 0; i < 8; i++) {
+		printHexChar((char)(digest[i] >> 24));
+		printHexChar((char)(digest[i] >> 16));
+		printHexChar((char)(digest[i] >> 8));
+		printHexChar((char)(digest[i] & 0xFF));
+	}
+	printf("\n");
 }
 
 int main(int argc, char **argv) {
@@ -146,19 +159,7 @@ int main(int argc, char **argv) {
 
 	//printf("correct? %s\n\n", (-676791373 == output[0] ? "True" : "False"));
 
-	int i;
-	for (i = 0; i < 8; i++) {
-		printHex((char)(output[i] >> 24));
-		printHex((char)(output[i] >> 16));
-		printHex((char)(output[i] >> 8));
-		printHex((char)(output[i] & 0xFF));
-	}
-	printf("\n");
-
-	char * dat = "chokoladekage";
-	printf("%ld ",strlen(dat) );
-	dat = "kage";
-	printf("%ld", strlen(dat));
+	printHex(output);
 
 	free(output);
 
