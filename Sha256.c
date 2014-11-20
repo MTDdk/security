@@ -18,7 +18,9 @@
 #define CHUNK_POWER_BYTES (CHUNK_POWER_BITS - BYTE_POWER_OF_TWO)
 #define CHUNK_SIZE (1 << CHUNK_POWER_BYTES)//512 bits for chunk size = 64 bytes
 
-const int HASH_VALUES[] = { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 };
+const int HASH_VALUES[] = { 
+    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 
+};
 const int ROUND_CONSTANTS[] = {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
     0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
@@ -71,17 +73,22 @@ void digest(char* input, int inputLength, unsigned int* digest) {
     padded[--pSize] = (char) ((orgLength >>= 8)/* & 0xFF*/);
 
     //copy HASH_VALUES
-    int H[8];
+    int H[8]; // current hash value
     for(index = 0; index < 8; index++)
         H[index] = HASH_VALUES[index];
 
     //process each 512-bit chunk
     for (index = 0; index < paddingSize / CHUNK_SIZE; index++) {
-        //copy the chunk into the 64 32-bits word
+        /* copy the chunk into the 64 32-bits word */
+        // copy the 512-bit chunk into the first 16 words
         unsigned int word[CHUNK_SIZE], w, c;
         for (w = 0, c = 0; w < 16; w++, c += 4)
-            word[w] = ((padded[index * CHUNK_SIZE + c] & 0xFF) << 24) | ((padded[index * CHUNK_SIZE + c + 1] & 0xFF) << 16) | ((padded[index * CHUNK_SIZE + c + 2] & 0xFF) << 8) | (padded[index * CHUNK_SIZE + c + 3] & 0xFF);
+            word[w] = ((padded[index * CHUNK_SIZE + c]     & 0xFF) << 24) | 
+                      ((padded[index * CHUNK_SIZE + c + 1] & 0xFF) << 16) | 
+                      ((padded[index * CHUNK_SIZE + c + 2] & 0xFF) <<  8) | 
+                       (padded[index * CHUNK_SIZE + c + 3] & 0xFF);
 
+        // extend first 16 words into the remaining 48 words
         int s0, s1, ch ,maj, temp1, temp2;
         for (w = 16; w < 64; w++) {
             s0 = rotr(word[w-15], 7) ^ rotr(word[w-15], 18) ^ (word[w-15] >> 3);
@@ -89,11 +96,14 @@ void digest(char* input, int inputLength, unsigned int* digest) {
             word[w] = word[w-16] + s0 + word[w-7] + s1;
         }
 
-        //Initialize working variables to current hash value:
+        // Initialize working variables to current hash value
+        // NOTE: the loops could be unrolled to enhance performance,
+        // but kept in loop for brevity
         int h[8];
         for(index = 0; index < 8; index++)
             h[index] = H[index];
 
+        // apply the compression function to the chunk
         for (w = 0; w < 64; w++) {
             s1 = rotr(h[4], 6) ^ rotr(h[4], 11) ^ rotr(h[4], 25);
             ch = (h[4] & h[5]) ^ ((~h[4]) & h[6]);
@@ -112,6 +122,7 @@ void digest(char* input, int inputLength, unsigned int* digest) {
             h[0] = temp1 + temp2;
         }
 
+        // add the compression chunk to the current hash value
         H[0] += h[0];
         H[1] += h[1];
         H[2] += h[2];
